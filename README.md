@@ -101,26 +101,41 @@ captioning_heuristic.py
    ```
 
 4. **Khởi động hệ thống**
-   ```bash
-   # Terminal 1: Backend
-   python simple_yolo_backend.py
    
-   # Terminal 2: Frontend
+   **Bước 1: Kích hoạt virtual environment**
+   ```bash
+   .venv\Scripts\activate
+   ```
+   
+   **Bước 2: Khởi động Backend (Terminal 1)**
+   ```bash
+   python simple_yolo_backend.py
+   ```
+   
+   **Bước 3: Khởi động Frontend (Terminal 2 mới)**
+   ```bash
    cd web
    npm run dev
    ```
 
 5. **Truy cập ứng dụng**
-   - Mở trình duyệt: http://localhost:5173
+   - Frontend: http://localhost:5173
    - Backend API: http://localhost:8011
 
 ### Sử dụng cơ bản
 
 1. **Cho phép truy cập camera** khi trình duyệt yêu cầu
-2. **Nhấn nút "Take Photo"** để chụp và phân tích
-3. **Nghe mô tả** qua speakers/headphones
+2. **Chọn chế độ**:
+   - **Auto Mode**: Tự động chụp và mô tả liên tục
+   - **Manual Mode**: Nhấn "Take Photo" để chụp thủ công
+3. **Nghe mô tả** qua speakers/headphones bằng tiếng Việt
 4. **Xem lịch sử** trong tab "Speech History"
 5. **Lưu ảnh** trong tab "Snapshots"
+
+### Lưu ý quan trọng
+- Đảm bảo **kích hoạt venv** trước khi chạy backend
+- **Backend phải chạy trước** frontend
+- Sử dụng **2 terminal riêng biệt** cho backend và frontend
 
 ## 🎨 Demo và ví dụ
 
@@ -359,44 +374,4 @@ Chúng tôi hoan nghênh mọi đóng góp để cải thiện dự án!
 - **Git**: Conventional commits
 - **Tests**: Coverage > 80%
 
-## 📄 Giấy phép
 
-Dự án này được phát hành dưới giấy phép [MIT License](LICENSE).
-
-## 🙏 Cảm ơn
-
-### Công nghệ và thư viện
-- **[Ultralytics YOLO](https://ultralytics.com/)**: Object detection tuyệt vời
-- **[FastAPI](https://fastapi.tiangolo.com/)**: Web framework hiệu suất cao
-- **[React](https://reactjs.org/)**: Library UI mạnh mẽ
-- **[OpenCV](https://opencv.org/)**: Computer vision foundation
-
-### Cộng đồng
-- **Cộng đồng AI Việt Nam**: Cảm hứng và hỗ trợ
-- **Tổ chức hỗ trợ người khiếm thị**: Hướng dẫn về nhu cầu người dùng
-- **Open Source Community**: Các thư viện và công cụ miễn phí
-
-## 📞 Hỗ trợ
-
-### Liên hệ
-- 🐛 **Báo lỗi**: [GitHub Issues](https://github.com/nichikei/ai-for-blind/issues)
-- 💬 **Thảo luận**: [GitHub Discussions](https://github.com/nichikei/ai-for-blind/discussions)
-- 📧 **Email**: [nichikei@example.com](mailto:nichikei@example.com)
-- 📱 **Telegram**: [@ai_for_blind_vn](https://t.me/ai_for_blind_vn)
-
-### Tài liệu
-- 📖 **Wiki**: [GitHub Wiki](https://github.com/nichikei/ai-for-blind/wiki)
-- 🎥 **Video hướng dẫn**: [YouTube Channel](https://youtube.com/@aiforblindvn)
-- 📚 **Blog**: [Development Blog](https://aiforblind.com/blog)
-
----
-
-<div align="center">
-
-**💝 Được tạo ra với tình yêu dành cho cộng đồng người mù và khiếm thị Việt Nam 💝**
-
-![AI for Blind Logo](https://via.placeholder.com/400x100/2563eb/ffffff?text=AI+for+Blind)
-
-*"Công nghệ không chỉ để thấy, mà để hiểu và cảm nhận thế giới"*
-
-</div>
