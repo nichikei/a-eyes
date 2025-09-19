@@ -1,0 +1,91 @@
+# AI Eyes - Vision Assistant for the Blind in Vietnam
+# Requirements file for Python 3.8+
+# Last updated: September 2025
+# Optimized for stability and cross-platform compatibility
+
+# ===== CORE MACHINE LEARNING & COMPUTER VISION =====
+torch>=2.0.0,<2.3.0
+torchvision>=0.15.0,<0.18.0
+transformers>=4.20.0,<5.0.0
+ultralytics>=8.0.0,<9.0.0
+opencv-python>=4.8.0,<5.0.0
+numpy>=1.21.0,<2.0.0
+
+# ===== TRANSLATION & NLP =====
+sentencepiece>=0.1.99,<1.0.0
+sacremoses>=0.0.53,<1.0.0
+
+# ===== IMAGE PROCESSING & ANALYSIS =====
+Pillow>=9.0.0,<11.0.0
+scikit-learn>=1.3.0,<2.0.0
+scipy>=1.10.0,<2.0.0
+matplotlib>=3.6.0,<4.0.0
+scikit-image>=0.20.0,<1.0.0
+
+# ===== TEXT-TO-SPEECH =====
+pyttsx3>=2.90
+
+# ===== COLOR ANALYSIS =====
+webcolors>=1.13.0,<2.0.0
+colorspacious>=1.1.2,<2.0.0
+
+# ===== TEXT-TO-SPEECH & AUDIO PROCESSING =====
+gTTS>=2.3.0,<3.0.0
+pyttsx3>=2.90,<3.0.0
+pygame>=2.5.0,<3.0.0
+sounddevice>=0.4.6,<1.0.0
+pyaudio>=0.2.11,<1.0.0
+
+# ===== SPEECH RECOGNITION =====
+vosk>=0.3.42,<1.0.0
+requests>=2.28.0,<3.0.0
+
+# ===== OCR (OPTICAL CHARACTER RECOGNITION) =====
+easyocr>=1.7.0,<2.0.0
+pytesseract>=0.3.10,<1.0.0
+
+# ===== WEB INTERFACE =====
+streamlit>=1.28.0,<2.0.0
+streamlit-webrtc>=0.47.0,<1.0.0
+
+# ===== PERFORMANCE OPTIMIZATION =====
+imagehash>=4.3.1,<5.0.0
+python-Levenshtein>=0.21.0,<1.0.0
+rapidfuzz>=3.0.0,<4.0.0
+cachetools>=5.3.0,<6.0.0
+
+# ===== DATA PROCESSING & UTILITIES =====
+pandas>=1.5.0,<3.0.0
+tqdm>=4.64.0,<5.0.0
+python-dateutil>=2.8.2,<3.0.0
+
+# ===== CONFIGURATION & LOGGING =====
+pyyaml>=6.0,<7.0.0
+python-dotenv>=1.0.0,<2.0.0
+
+# ===== PERFORMANCE OPTIMIZATION =====
+numba>=0.57.0,<1.0.0
+joblib>=1.3.0,<2.0.0
+
+# ===== PYTHON VERSION COMPATIBILITY =====
+pathlib2>=2.3.7,<3.0.0; python_version < "3.9"
+typing-extensions>=4.0.0,<5.0.0; python_version < "3.10"
+
+# ===== SYSTEM-SPECIFIC AUDIO DEPENDENCIES =====
+# Windows audio support
+pywin32>=306; sys_platform == "win32"
+
+# macOS audio support  
+pyobjc-core>=9.0; sys_platform == "darwin"
+pyobjc-framework-AVFoundation>=9.0; sys_platform == "darwin"
+
+# Linux audio support
+python-pulse>=0.2.0; sys_platform == "linux"
+
+# ===== DEVELOPMENT TOOLS (OPTIONAL) =====
+# Uncomment the following for development environment
+# pytest>=7.0.0,<8.0.0
+# pytest-cov>=4.0.0,<5.0.0
+# black>=23.0.0,<24.0.0
+# flake8>=6.0.0,<7.0.0
+# mypy>=1.0.0,<2.0.0
