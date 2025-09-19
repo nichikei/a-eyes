@@ -1,0 +1,105 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+*.tmp
+
+# AI/ML specific
+.hf_cache/
+*.pt
+*.pth
+*.onnx
+*.pkl
+*.joblib
+models/
+checkpoints/
+
+# Media files
+*.mp4
+*.avi
+*.mov
+*.wav
+*.mp3
+*.webm
+*.jpg
+*.jpeg
+*.png
+*.gif
+*.bmp
+
+# Logs
+*.log
+logs/
+log/
+
+# Node.js
+web/node_modules/
+web/.next/
+web/out/
+web/build/
+web/dist/
+web/.env.local
+web/.env.development.local
+web/.env.test.local
+web/.env.production.local
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Temporary files
+temp/
+tmp/
+*.cache
+.cache/
+
+# Windows
+desktop.ini
+$RECYCLE.BIN/
+
+# Config files with secrets (if any)
+.env.local
+.env.production
+config.local.yaml
