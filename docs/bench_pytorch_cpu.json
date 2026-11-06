@@ -1,0 +1,90 @@
+{
+  "machine": {
+    "cpu": "13th Gen Intel(R) Core(TM) i7-1355U",
+    "threads": 12,
+    "device": "cpu",
+    "python": "3.11.8",
+    "torch": "2.8.0+cpu"
+  },
+  "model": "yolov5su.pt",
+  "imgsz": 640,
+  "frame": "1280x720 JPEG q80",
+  "runs_per_image": 40,
+  "startup_s": 1.07,
+  "images": {
+    "bus.jpg": {
+      "objects": [
+        "bus",
+        "person",
+        "person",
+        "person",
+        "person"
+      ],
+      "caption_text": "NGUY HIỂM: xe lớn đang rất gần ở 12 giờ (thẳng phía trước). Có xe buýt ở vị trí 12 giờ (thẳng phía trước), rất gần. Còn có 4 người ở khu vực 10 giờ (lệch trái). Nên đi về phía bên phải để tránh chướng ngại vật.",
+      "decode": {
+        "mean": 8.6,
+        "p50": 8.6,
+        "p95": 10.1,
+        "min": 7.4
+      },
+      "detect": {
+        "mean": 414.4,
+        "p50": 418.3,
+        "p95": 462.6,
+        "min": 308.1
+      },
+      "caption": {
+        "mean": 0.1,
+        "p50": 0.1,
+        "p95": 0.1,
+        "min": 0.1
+      },
+      "total": {
+        "mean": 423.4,
+        "p50": 428.2,
+        "p95": 470.9,
+        "min": 316.6
+      }
+    },
+    "zidane.jpg": {
+      "objects": [
+        "person",
+        "person",
+        "tie"
+      ],
+      "caption_text": "Có 2 người, trong đó một ở gần bạn hơn tại vị trí 12 giờ (thẳng phía trước), dưới 2 mét. Cũng có cà vạt ở 11 giờ (hơi lệch trái), khoảng 8-15 mét. Nên đi về phía bên trái để tránh chướng ngại vật.",
+      "decode": {
+        "mean": 7.6,
+        "p50": 7.2,
+        "p95": 9.4,
+        "min": 6.2
+      },
+      "detect": {
+        "mean": 438.6,
+        "p50": 440.7,
+        "p95": 468.6,
+        "min": 382.9
+      },
+      "caption": {
+        "mean": 0.1,
+        "p50": 0.1,
+        "p95": 0.1,
+        "min": 0.0
+      },
+      "total": {
+        "mean": 446.6,
+        "p50": 448.4,
+        "p95": 476.8,
+        "min": 397.3
+      }
+    }
+  },
+  "fallback_ms": {
+    "mean": 28.7,
+    "p50": 29.0,
+    "p95": 31.5,
+    "min": 24.9
+  },
+  "pipeline_p50_ms": 438.3,
+  "pipeline_fps_p50": 2.3
+}

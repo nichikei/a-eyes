@@ -27,6 +27,7 @@ import io
 from PIL import Image
 import time
 import logging
+from concurrent.futures import ThreadPoolExecutor
 from typing import Dict, List, Any, Optional
 
 # ---------- Logging ----------
@@ -52,7 +53,7 @@ except Exception:
 
 # ---------- Heuristic captioning (NEW) ----------
 from captioning_heuristic import (
-    heuristic_caption, improved_heuristic_caption, normalize_bbox, vi_label, size_adj, range_text, clock_pos
+    improved_heuristic_caption, normalize_bbox, vi_label, size_adj, range_text, clock_pos
 )
 
 # ---------- Enhanced Detection System (NEW) ----------
@@ -67,28 +68,24 @@ except Exception as e:
         return dets
 
 # ---------- TTS ----------
+# tts_vn is preferred; if it is missing or fails, speech falls back to
+# Windows SAPI + OneCore voices (Microsoft An) below.
 try:
     from tts_vn import speak_vn_blocking, current_voice_info
 except Exception as e:
     logger.warning(f"⚠️ tts_vn not available: {e}")
     def speak_vn_blocking(txt: str, *args, **kwargs):
-        logger.info(f"[TTS-disabled] {txt}")
-    def current_voice_info():
-        return {"error": "TTS module not available"}
-
-import re
-
-# ---------- TTS (SAPI + OneCore) ----------
-# Nếu đã có tts_vn thì vẫn ưu tiên, còn không sẽ dùng SAPI + OneCore (có Microsoft An)
-try:
-    from tts_vn import speak_vn_blocking, current_voice_info
-except Exception as e:
-    def speak_vn_blocking(txt: str, *args, **kwargs):
         raise RuntimeError("tts_vn unavailable")
     def current_voice_info():
         return {"error": "tts_vn module not available"}
 
-import comtypes, comtypes.client
+# SAPI is Windows-only. Without comtypes every SAPI helper below fails inside
+# its own try/except and reports "no voice", so the server still runs (and
+# the test suite still imports it) on Linux/macOS.
+try:
+    import comtypes, comtypes.client
+except Exception:
+    comtypes = None
 
 def _enum_sapi_desktop():
     names = []
@@ -242,8 +239,6 @@ def _sapi_say_blocking(text: str) -> bool:
         logger.error(f"❌ SAPI speak failed: {e}")
         return False
 
-TTS_ENGINE = os.getenv("TTS_ENGINE", "auto").lower()     # auto | winrt | sapi
-TTS_FORCE_SAPI = os.getenv("TTS_FORCE_SAPI", "0") == "1" # ép dùng SAPI
 DISABLE_TTS_DEDUPE = os.getenv("DISABLE_TTS_DEDUPE", "0") == "1"
 ALWAYS_SPEAK = os.getenv("ALWAYS_SPEAK", "0") == "1"  # ✅ Tắt mặc định để tránh TTS kép
 
@@ -303,6 +298,8 @@ class DescribeResponse(BaseModel):
     objects: List[str]
     objects_detail: List[ObjectDetail]
     processing_time_ms: int
+    # Per-stage breakdown (decode / detect / caption), for profiling.
+    timings_ms: Dict[str, float] = {}
 
 # ---------- Utils ----------
 def decode_base64_image(image_data: str) -> np.ndarray:
@@ -408,7 +405,10 @@ async def startup_event():
     try:
         from app.detector import Detector
         logger.info("🔍 Initializing YOLO detector...")
-        detector = Detector("yolov5s.pt", device=selected_device)
+        # Prefer an OpenVINO export when present: ~7x faster on Intel CPUs
+        # (see scripts/benchmark.py). Override with YOLO_MODEL.
+        default_model = "yolov5su_openvino_model" if os.path.isdir("yolov5su_openvino_model") else "yolov5su.pt"
+        detector = Detector(os.getenv("YOLO_MODEL", default_model), device=selected_device)
         if getattr(detector, "is_loaded", False):
             logger.info("✅ YOLO detector ready")
         else:
@@ -491,26 +491,42 @@ def voice_info():
     except Exception as e:
         return {"error": str(e)}
 
-class _DescribeRequest(DescribeRequest):
-    pass
+# Speech runs on one background worker: utterances never overlap, and the HTTP
+# response no longer waits for the caption to be read aloud (that used to add
+# the whole TTS duration, up to the 7 s worker timeout, to every request).
+_tts_executor = ThreadPoolExecutor(max_workers=1, thread_name_prefix="tts")
 
+
+def _speak_caption(text: str) -> None:
+    logger.info(f"[speak] {text}")
+    try:
+        speak_vn_blocking(text)
+        return
+    except Exception as e:
+        logger.warning(f"tts_vn unavailable or failed: {e}")
+    ok = _sapi_say_blocking(text)
+    logger.info(f"[sapi-onecore] spoken={ok}")
+
+
+# A plain ``def`` endpoint: FastAPI runs it in its threadpool, so YOLO
+# inference (CPU-bound, ~100 ms) no longer blocks the event loop and /health
+# stays responsive while a frame is being processed.
 @app.post("/api/describe", response_model=DescribeResponse)
-async def describe(req: DescribeRequest):
+def describe(req: DescribeRequest):
     if not startup_complete:
         raise HTTPException(status_code=503, detail="System warming up. Try again.")
 
-    total_t0 = time.time()
+    total_t0 = time.perf_counter()
 
     # 1) Decode
-    t0 = time.time()
+    t0 = time.perf_counter()
     cv_img = decode_base64_image(req.image)
     H, W = cv_img.shape[:2]
-    _ = Image.fromarray(cv2.cvtColor(cv_img, cv2.COLOR_BGR2RGB))
-    t_decode = (time.time() - t0) * 1000
+    t_decode = (time.perf_counter() - t0) * 1000
     logger.info(f"📸 Image decoded in {t_decode:.1f}ms: {(H, W, 3)}")
 
     # 2) Detect with Enhanced Processing
-    t0 = time.time()
+    t0 = time.perf_counter()
     raw_dets: List[Dict] = []
     if detector and getattr(detector, "is_loaded", False):
         try:
@@ -539,32 +555,23 @@ async def describe(req: DescribeRequest):
 
     filtered = _filter_and_prepare(raw_dets, W, H)
     kept = len(filtered)
-    t_detect = (time.time() - t0) * 1000
+    t_detect = (time.perf_counter() - t0) * 1000
     logger.info(f"🎯 Detection completed in {t_detect:.1f}ms, kept {kept} objects")
 
     # 3) Caption - Sử dụng phiên bản cải tiến
-    t0 = time.time()
+    t0 = time.perf_counter()
     caption_dets = [{"label": f["en"], "bbox": f["bbox"], "confidence": f["conf"]} for f in filtered]
     caption_fast = improved_heuristic_caption(caption_dets, W, H) or "Khung hình trống."
-    t_cap = (time.time() - t0) * 1000
+    t_cap = (time.perf_counter() - t0) * 1000
     logger.info(f"⚡ Enhanced caption generated in {t_cap:.1f}ms")
 
-    # 4) TTS
+    # 4) TTS (non-blocking, see _tts_executor)
     if (ALWAYS_SPEAK or req.autoSpeak) and should_speak(caption_fast):
-        logger.info(f"[speak-fast-BLOCK] {caption_fast}")
-        ok = False
-        try:
-            speak_vn_blocking(caption_fast)  # nếu bạn có module tts_vn nội bộ
-            ok = True
-        except Exception as e:
-            logger.warning(f"tts_vn unavailable or failed: {e}")
-        if not ok:
-            ok = _sapi_say_blocking(caption_fast)
-            logger.info(f"[sapi-onecore] spoken={ok}")
+        _tts_executor.submit(_speak_caption, caption_fast)
 
     # Response
     objects_en = [f["en"] for f in filtered]
-    avg_conf = (sum(f["conf"] for f in filtered) / len(filtered)) if filtered else 0.5
+    avg_conf = (sum(f["conf"] for f in filtered) / len(filtered)) if filtered else 0.0
     details_out = [
         ObjectDetail(
             en=f["en"],
@@ -578,7 +585,7 @@ async def describe(req: DescribeRequest):
         for f in filtered
     ]
 
-    total_ms = int((time.time() - total_t0) * 1000)
+    total_ms = int((time.perf_counter() - total_t0) * 1000)
     logger.info(f"⚡ Fast response in {total_ms:.1f}ms (decode:{t_decode:.1f}, yolo:{t_detect:.1f}, heuristic:{t_cap:.1f})")
 
     return DescribeResponse(
@@ -588,6 +595,11 @@ async def describe(req: DescribeRequest):
         objects=objects_en,
         objects_detail=details_out,
         processing_time_ms=total_ms,
+        timings_ms={
+            "decode": round(t_decode, 2),
+            "detect": round(t_detect, 2),
+            "caption": round(t_cap, 2),
+        },
     )
 
 # ---------- Main ----------

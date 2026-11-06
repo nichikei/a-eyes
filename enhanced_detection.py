@@ -260,9 +260,9 @@ class ImagePreprocessor:
         
         # Calculate cumulative distribution from the histogram
         accumulator = []
-        accumulator.append(float(hist[0]))
+        accumulator.append(float(hist[0][0]))
         for index in range(1, hist_size):
-            accumulator.append(accumulator[index -1] + float(hist[index]))
+            accumulator.append(accumulator[index - 1] + float(hist[index][0]))
         
         # Locate points to clip
         maximum = accumulator[-1]
@@ -393,6 +393,12 @@ def process_enhanced_detection(raw_detections: List[Dict], image: np.ndarray = N
     try:
         # 1. Preprocess image if provided
         if image is not None:
+            # The enhanced image is only used for global statistics
+            # (brightness / contrast / edge density), so compute them on a
+            # 320-px-wide thumbnail: ~150 ms -> a few ms on a 1280x720 frame.
+            h, w = image.shape[:2]
+            if w > 320:
+                image = cv2.resize(image, (320, max(1, int(h * 320 / w))), interpolation=cv2.INTER_AREA)
             enhanced_image = ImagePreprocessor.enhance_image(image)
             image_stats = analyze_image_quality(enhanced_image)
         else:

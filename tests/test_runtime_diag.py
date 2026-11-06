@@ -28,8 +28,10 @@ class TestAssertTorchFromVenv:
              patch('torch.__file__', '/path/to/venv/Lib/site-packages/torch/__init__.py'), \
              patch('os.path.commonpath') as mock_commonpath:
             
-            # Mock commonpath to return venv root (indicating torch is in venv)
-            mock_commonpath.return_value = '/path/to/venv'
+            # Mock commonpath to return the venv root exactly as the function
+            # computes it (abspath adds a drive letter on Windows).
+            venv_root = os.path.abspath(os.path.join('/path/to/venv/Scripts/python.exe', '..', '..'))
+            mock_commonpath.return_value = venv_root.replace('\\', '/')
             
             # Should not raise
             assert_torch_from_venv(strict=True)
