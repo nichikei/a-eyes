@@ -62,6 +62,7 @@ class TestAssertTorchFromVenv:
                 
             assert "PyTorch is not from this venv" in caplog.text
     
+    @pytest.mark.skipif(os.name != "nt", reason="Windows path semantics")
     def test_windows_path_normalization(self):
         """Test Windows path normalization"""
         with patch('sys.executable', r'C:\vision\.venv\Scripts\python.exe'), \
